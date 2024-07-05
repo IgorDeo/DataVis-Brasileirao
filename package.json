@@ -9,7 +9,10 @@
     "observable": "observable"
   },
   "dependencies": {
-    "@observablehq/framework": "1.9.0"
+    "@observablehq/framework": "1.9.0",
+    "vega": "^5.30.0",
+    "vega-embed": "^6.26.0",
+    "vega-lite": "^5.19.0"
   },
   "devDependencies": {
     "rimraf": "^5.0.5"

@@ -29,5 +29,48 @@ sql:
 
 
 ```sql 
-select count(*) from jogos
+WITH campeoes AS (
+    SELECT 
+        ano_campeonato,
+        time_campeao,
+        SUM(pontos) AS pontos
+    FROM (
+        SELECT 
+            ano_campeonato,
+            time_mandante AS time_campeao,
+            3 * SUM(CASE WHEN gols_mandante > gols_visitante THEN 1 ELSE 0 END) + SUM(CASE WHEN gols_mandante = gols_visitante THEN 1 ELSE 0 END) AS pontos
+        FROM jogos
+        GROUP BY ano_campeonato, time_mandante
+        UNION ALL
+        SELECT 
+            ano_campeonato,
+            time_visitante AS time_campeao,
+            3 * SUM(CASE WHEN gols_visitante > gols_mandante THEN 1 ELSE 0 END) + SUM(CASE WHEN gols_visitante = gols_mandante THEN 1 ELSE 0 END) AS pontos
+        FROM jogos
+        GROUP BY ano_campeonato, time_visitante
+    ) AS pontuacao
+    GROUP BY ano_campeonato, time_campeao
+    ORDER BY ano_campeonato, pontos DESC
+),
+times_campeoes AS (
+    SELECT DISTINCT ON (ano_campeonato) 
+        ano_campeonato,
+        time_campeao
+    FROM campeoes
+    ORDER BY ano_campeonato, pontos DESC
+)
+SELECT 
+    jogos.ano_campeonato,
+    jogos.data,
+    jogos.rodada,
+    jogos.estadio,
+    jogos.time_mandante,
+    jogos.gols_mandante,
+    jogos.time_visitante,
+    jogos.gols_visitante
+FROM jogos
+JOIN times_campeoes 
+ON jogos.ano_campeonato = times_campeoes.ano_campeonato
+AND (jogos.time_mandante = times_campeoes.time_campeao OR jogos.time_visitante = times_campeoes.time_campeao)
+ORDER BY jogos.ano_campeonato, jogos.data;
 ```
