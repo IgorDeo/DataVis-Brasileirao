@@ -28,6 +28,23 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Debug step to verify data files are in the build output
+      - name: List files in dist directory
+        run: |
+          echo "Contents of dist directory:"
+          ls -la dist
+          echo "Contents of dist/data directory (if exists):"
+          ls -la dist/data || echo "dist/data directory does not exist"
+
+      # Ensure the data directory exists in the build output
+      - name: Ensure data files are copied
+        run: |
+          if [ ! -d "dist/data" ]; then
+            mkdir -p dist/data
+            cp -r src/data/* dist/data/
+            echo "Manually copied data files to dist/data"
+          fi
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
