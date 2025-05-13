@@ -25,6 +25,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Create .nojekyll file to bypass Jekyll processing
+      - name: Create .nojekyll file
+        run: touch .nojekyll
+
       - name: Build
         run: npm run build
 
@@ -35,15 +39,42 @@ jobs:
           ls -la dist
           echo "Contents of dist/data directory (if exists):"
           ls -la dist/data || echo "dist/data directory does not exist"
+          echo "Contents of dist/_file directory (if exists):"
+          ls -la dist/_file || echo "dist/_file directory does not exist"
 
-      # Ensure the data directory exists in the build output
+      # Create .nojekyll file in the dist directory
+      - name: Create .nojekyll in dist
+        run: touch dist/.nojekyll
+
+      # Copy CSV files to both possible locations
       - name: Ensure data files are copied
         run: |
+          # For original path
           if [ ! -d "dist/data" ]; then
             mkdir -p dist/data
             cp -r src/data/* dist/data/
             echo "Manually copied data files to dist/data"
           fi
+          
+          # For _file path (where Observable Framework might put them)
+          if [ -d "dist/_file" ]; then
+            # Find all CSV files in the source data directory
+            find src/data -name "*.csv" -exec cp {} dist/_file/ \;
+            echo "Copied CSV files to dist/_file directory"
+          elif [ -d "dist/_file/data" ]; then
+            # If there's a nested data directory in _file
+            find src/data -name "*.csv" -exec cp {} dist/_file/data/ \;
+            echo "Copied CSV files to dist/_file/data directory"
+          else
+            # Create _file directory if it doesn't exist
+            mkdir -p dist/_file
+            find src/data -name "*.csv" -exec cp {} dist/_file/ \;
+            echo "Created dist/_file and copied CSV files"
+          fi
+          
+          # Print the contents of directories to verify
+          echo "After copying, contents of dist/_file:"
+          ls -la dist/_file || echo "dist/_file directory does not exist"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
