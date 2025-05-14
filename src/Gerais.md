@@ -109,7 +109,7 @@ const divWidth = Generators.width(document.querySelector("#ex01"));
                       y: {
                         field: "qtd_vitorias",
                         type: "quantitative",
-                        title: "Vitórias e Derrotas",
+                        title: "Derrotas e Vitórias",
                         scale: { domain: [-30, 30] }
                       },
                       color: {
